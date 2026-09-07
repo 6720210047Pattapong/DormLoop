@@ -1,71 +1,88 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
+import { Car, Home as HomeIcon, Smartphone, Bike, PersonStanding, Cat, Tv, MoreHorizontal, CheckCircle, MessageCircle } from 'lucide-react';
+import { LanguageContext } from '../context/LanguageContext';
+import { ProductContext } from '../context/ProductContext';
 
 const Home = () => {
-  const featuredProducts = products.filter(p => p.featured);
+  const { language } = useContext(LanguageContext);
+  const { products } = useContext(ProductContext);
+
+  const categories = [
+    { name: language === 'TH' ? 'รถมือสอง' : 'Used Cars', icon: <Car size={24} /> },
+    { name: language === 'TH' ? 'อสังหาริมทรัพย์' : 'Property', icon: <HomeIcon size={24} /> },
+    { name: language === 'TH' ? 'มือถือ แท็บเล็ต' : 'Mobile/Tablet', icon: <Smartphone size={24} /> },
+    { name: language === 'TH' ? 'มอเตอร์ไซค์' : 'Motorcycles', icon: <Bike size={24} /> },
+    { name: language === 'TH' ? 'พระเครื่อง' : 'Amulets', icon: <PersonStanding size={24} /> }, 
+    { name: language === 'TH' ? 'สัตว์เลี้ยง' : 'Pets', icon: <Cat size={24} /> },
+    { name: language === 'TH' ? 'เครื่องใช้ไฟฟ้า' : 'Electronics', icon: <Tv size={24} /> },
+    { name: language === 'TH' ? 'เพิ่มเติม' : 'More', icon: <MoreHorizontal size={24} /> },
+  ];
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', paddingBottom: '3rem' }}>
+      
       {/* Hero Section */}
-      <section 
-        className="section flex items-center animate-gradient" 
-        style={{ 
-          minHeight: '85vh', 
-          background: 'linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(29,78,216,0.1) 100%)',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        <div className="container" style={{ position: 'relative', zIndex: 10 }}>
-          <div style={{
-            display: 'inline-block',
-            padding: '0.5rem 1rem',
-            background: 'var(--primary-light)',
-            color: 'var(--primary-color)',
-            borderRadius: '2rem',
-            fontWeight: '600',
-            marginBottom: '1.5rem',
-            boxShadow: '0 4px 14px 0 rgba(37,99,235,0.1)'
-          }}>
-            #1 ตลาดนัดมือสองเพื่อชาว ม.ทักษิณ
-          </div>
-          <h1 style={{ fontSize: '4.5rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-            ส่งต่อของใช้ <br />
-            <span style={{ 
-              background: '-webkit-linear-gradient(45deg, var(--primary-color), #60a5fa)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>ราคานิสิต</span>
+      <section style={{ 
+        backgroundColor: '#273c66', 
+        padding: '3rem 0 6rem 0', 
+        color: 'white',
+        textAlign: 'center',
+        position: 'relative'
+      }}>
+        <div className="container">
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', fontWeight: 'bold' }}>
+            {language === 'TH' ? 'ซื้อ-ขาย ของออนไลน์ จบง่ายที่ TSU Market' : 'Buy and Sell Online Easily at TSU Market'}
           </h1>
-          <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 2.5rem', fontWeight: '300' }}>
-            พื้นที่สำหรับนิสิต ม.ทักษิณ ในการซื้อขาย แลกเปลี่ยน ของใช้ ชุดนิสิต อุปกรณ์การเรียน ในราคาสบายกระเป๋า
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link to="/shop" className="btn btn-primary" style={{ fontSize: '1.25rem', padding: '1rem 2.5rem' }}>
-              เลือกซื้อสินค้าเลย
-            </Link>
+          <div className="flex justify-center gap-4" style={{ fontSize: '0.9rem', color: '#ff8a65' }}>
+            <span className="flex items-center gap-1"><CheckCircle size={16} /> {language === 'TH' ? 'ตรวจสอบผู้ขาย' : 'Verified Seller'}</span>
+            <span className="flex items-center gap-1"><MessageCircle size={16} /> {language === 'TH' ? 'แชทในระบบ' : 'In-system Chat'}</span>
           </div>
         </div>
-        
-        {/* Decorative elements */}
-        <div style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', background: 'rgba(37,99,235,0.1)', borderRadius: '50%', filter: 'blur(60px)' }}></div>
-        <div style={{ position: 'absolute', bottom: '10%', right: '5%', width: '400px', height: '400px', background: 'rgba(96,165,250,0.1)', borderRadius: '50%', filter: 'blur(80px)' }}></div>
+      </section>
+
+      {/* Category Section (Overlapping Hero) */}
+      <section style={{ marginTop: '-4rem', position: 'relative', zIndex: 10 }}>
+        <div className="container">
+          <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+            {/* Tabs */}
+            <div className="flex" style={{ borderBottom: '1px solid #eee' }}>
+              <div style={{ padding: '1rem 2rem', borderBottom: '3px solid var(--primary-color)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <span style={{color: 'var(--primary-color)'}}>👍 {language === 'TH' ? 'ยอดนิยม' : 'Popular'}</span>
+              </div>
+              <div style={{ padding: '1rem 2rem', color: '#666', cursor: 'pointer' }}>🛍️ {language === 'TH' ? 'มาร์เก็ตเพลส' : 'Marketplace'}</div>
+              <div style={{ padding: '1rem 2rem', color: '#666', cursor: 'pointer' }}>🚗 {language === 'TH' ? 'รถยนต์' : 'Cars'}</div>
+              <div style={{ padding: '1rem 2rem', color: '#666', cursor: 'pointer' }}>🏢 {language === 'TH' ? 'อสังหา' : 'Property'}</div>
+            </div>
+            
+            {/* Icons */}
+            <div className="grid grid-cols-4 md:grid-cols-8 gap-4" style={{ padding: '2rem 1rem' }}>
+              {categories.map((cat, idx) => (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-color)' }}>
+                    {cat.icon}
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: '#333', textAlign: 'center' }}>{cat.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Featured Products */}
-      <section className="section" style={{ background: 'white' }}>
+      <section style={{ marginTop: '2rem' }}>
         <div className="container">
-          <div className="flex items-center justify-between" style={{ marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.5rem' }}>สินค้าแนะนำ</h2>
-            <Link to="/shop" style={{ color: 'var(--primary-color)', fontWeight: 600, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ดูทั้งหมด <span>→</span>
+          <div className="flex items-center justify-between" style={{ marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.5rem', color: '#333' }}>{language === 'TH' ? 'สินค้าแนะนำ' : 'Featured Products'}</h2>
+            <Link to="/shop" style={{ color: 'var(--primary-color)', fontWeight: 500, fontSize: '0.9rem' }}>
+              {language === 'TH' ? 'ดูทั้งหมด' : 'See all'} →
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-8">
-            {featuredProducts.map(product => (
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

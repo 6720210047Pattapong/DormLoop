@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -7,27 +7,55 @@ import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import MyProducts from './pages/MyProducts';
+import ProductForm from './pages/ProductForm';
+import { AuthProvider, AuthContext } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { ProductProvider } from './context/ProductContext';
+
+const ProtectedRoute = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
-    <CartProvider>
-      <Router>
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <Navbar />
-          <main style={{ flex: 1 }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/product/:id" element={<ProductDetails />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
-    </CartProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <ProductProvider>
+          <CartProvider>
+            <Router>
+              <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <Navbar />
+                <main style={{ flex: 1 }}>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/product/:id" element={<ProductDetails />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    
+                    {/* Protected Routes */}
+                    <Route path="/my-products" element={<ProtectedRoute><MyProducts /></ProtectedRoute>} />
+                    <Route path="/product/create" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
+                    <Route path="/product/edit/:id" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
+                  </Routes>
+                </main>
+              <Footer />
+            </div>
+          </Router>
+        </CartProvider>
+        </ProductProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 
