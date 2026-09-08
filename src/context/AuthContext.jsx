@@ -9,15 +9,25 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
-      // Try to parse user from token payload (simple approach for now)
       try {
         const payloadStr = token.split('.')[1];
-        if (!payloadStr) throw new Error("Invalid token format");
-        const payload = JSON.parse(atob(payloadStr));
-        setUser({ id: payload.id || payload.userId, name: payload.name, email: payload.email, role: payload.role });
+        if (!payloadStr) throw new Error('Invalid token format');
+
+        const normalized = payloadStr.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+        const payload = JSON.parse(atob(padded));
+
+        setUser({
+          id: payload.userId || payload.id,
+          name: payload.name,
+          email: payload.email,
+          role: payload.role || 'user'
+        });
       } catch (e) {
-        console.error("Invalid token", e);
-        logout();
+        console.error('Invalid token', e);
+        setToken(null);
+        setUser(null);
+        localStorage.removeItem('token');
       }
     } else {
       localStorage.removeItem('token');
@@ -26,33 +36,18 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    // Mock login for testing
-    if (email === 'test@tsu.ac.th' && password === '123456') {
-      const mockUser = { id: 1, name: 'TSU Student', email: 'test@tsu.ac.th', role: 'user' };
-      const mockToken = `fake.${btoa(JSON.stringify(mockUser))}.fake`; 
-      setToken(mockToken);
-      setUser(mockUser);
-      return;
-    }
-    
-    if (email === 'admin@tsu.ac.th' && password === '123456') {
-      const mockAdmin = { id: 99, name: 'TSU Admin', email: 'admin@tsu.ac.th', role: 'admin' };
-      const mockToken = `fake.${btoa(JSON.stringify(mockAdmin))}.fake`; 
-      setToken(mockToken);
-      setUser(mockAdmin);
-      return;
-    }
-
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
-    
+
     setToken(data.token);
     setUser(data.user);
+    return data;
   };
 
   const register = async (name, email, password) => {
@@ -61,8 +56,10 @@ export const AuthProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
     });
+
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+    return data;
   };
 
   const logout = () => {

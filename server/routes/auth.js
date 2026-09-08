@@ -28,10 +28,14 @@ router.post('/register', async (req, res) => {
         name,
         email,
         password: hashedPassword,
+        role: 'user',
       },
     });
 
-    res.status(201).json({ message: 'User registered successfully', userId: user.id });
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -53,9 +57,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user.id, name: user.name, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(
+      { userId: user.id, name: user.name, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

@@ -1,40 +1,45 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { ShoppingCart, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { LanguageContext } from '../context/LanguageContext';
 import { AuthContext } from '../context/AuthContext';
 import { ProductContext } from '../context/ProductContext';
+import { useCart } from '../context/CartContext';
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
   const { language } = useContext(LanguageContext);
-  const { user } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
   const { deleteProduct } = useContext(ProductContext);
+  const { addToCart } = useCart();
+  const canManageProduct = !!user && (user.role === 'admin' || product.sellerId === user.id);
 
-  const handleDelete = (e) => {
+  const handleDelete = async (e) => {
     e.preventDefault();
     if(window.confirm(language === 'TH' ? 'คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?' : 'Are you sure you want to delete this?')) {
-      deleteProduct(product.id);
-      alert(language === 'TH' ? 'ลบสินค้าสำเร็จ' : 'Deleted successfully');
+      try {
+        await deleteProduct(product.id, token);
+        alert(language === 'TH' ? 'ลบสินค้าสำเร็จ' : 'Deleted successfully');
+      } catch (error) {
+        alert(error.message || 'Delete failed');
+      }
     }
   };
 
   return (
     <div className="card" style={{ position: 'relative' }}>
-      {user?.role === 'admin' && (
+      {canManageProduct && (
         <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10, display: 'flex', gap: '0.5rem' }}>
           <Link 
             to={`/product/edit/${product.id}`}
             style={{ background: 'var(--primary-color)', color: 'white', padding: '0.5rem', borderRadius: '50%', display: 'flex' }}
-            title={language === 'TH' ? 'แก้ไข (แอดมิน)' : 'Edit (Admin)'}
+            title={language === 'TH' ? 'แก้ไขสินค้า' : 'Edit listing'}
           >
             <span style={{ fontSize: '0.8rem' }}>✏️</span>
           </Link>
           <button 
             onClick={handleDelete}
             style={{ background: 'red', color: 'white', padding: '0.5rem', borderRadius: '50%', display: 'flex' }}
-            title={language === 'TH' ? 'ลบ (แอดมิน)' : 'Delete (Admin)'}
+            title={language === 'TH' ? 'ลบสินค้า' : 'Delete listing'}
           >
             <Trash2 size={16} />
           </button>
@@ -56,15 +61,22 @@ const ProductCard = ({ product }) => {
         </Link>
         <div className="flex items-center justify-between" style={{ marginTop: '1rem' }}>
           <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>฿{product.price}</span>
-          <button 
-            className="btn btn-primary" 
-            style={{ padding: '0.5rem 1rem' }}
-            onClick={() => addToCart(product)}
-          >
-            <ShoppingCart size={18} style={{ marginRight: '0.5rem' }} />
-            {language === 'TH' ? 'เพิ่มลงตะกร้า' : 'Add'}
-          </button>
+          <Link to={`/product/${product.id}`} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+            {language === 'TH' ? 'ดูรายละเอียด' : 'View'}
+          </Link>
         </div>
+        <button
+          onClick={() => addToCart(product, 1)}
+          className="btn btn-outline"
+          style={{ width: '100%', marginTop: '0.75rem', padding: '0.7rem 1rem' }}
+        >
+          {language === 'TH' ? 'เพิ่มลงตะกร้า' : 'Add to cart'}
+        </button>
+        {!user && (
+          <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
+            {language === 'TH' ? 'เข้าสู่ระบบเพื่อจัดการประกาศ' : 'Login to manage this listing'}
+          </div>
+        )}
       </div>
     </div>
   );

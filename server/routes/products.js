@@ -16,7 +16,7 @@ const authenticate = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(400).json({ error: 'Invalid token' });
+    return res.status(400).json({ error: 'Invalid token' });
   }
 };
 
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
     let whereClause = {};
     
     if (search) {
-      whereClause.title = { contains: search };
+      whereClause.title = { contains: search, mode: 'insensitive' };
     }
     
     if (category && category !== 'All') {
@@ -98,10 +98,12 @@ router.put('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Check ownership
     const existing = await prisma.product.findUnique({ where: { id: parseInt(id) } });
     if (!existing) return res.status(404).json({ error: 'Product not found' });
-    if (existing.sellerId !== req.user.userId) return res.status(403).json({ error: 'Unauthorized' });
+
+    const isOwner = existing.sellerId === req.user.userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Unauthorized' });
 
     const updatedProduct = await prisma.product.update({
       where: { id: parseInt(id) },
@@ -120,10 +122,12 @@ router.delete('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Check ownership
     const existing = await prisma.product.findUnique({ where: { id: parseInt(id) } });
     if (!existing) return res.status(404).json({ error: 'Product not found' });
-    if (existing.sellerId !== req.user.userId) return res.status(403).json({ error: 'Unauthorized' });
+
+    const isOwner = existing.sellerId === req.user.userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Unauthorized' });
 
     await prisma.product.delete({ where: { id: parseInt(id) } });
     

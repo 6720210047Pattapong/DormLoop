@@ -6,32 +6,52 @@ import { Link } from 'react-router-dom';
 import { Edit, Trash2, Plus } from 'lucide-react';
 
 const MyProducts = () => {
-  const { user } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
   const { language } = useContext(LanguageContext);
   const { products, deleteProduct } = useContext(ProductContext);
-  
-  // Since we don't have real sellerId in mock data yet, we just show all or mock it.
-  // In a real app we filter by `sellerId === user.id`. For now, let's just assume they own products 1-4 if user, all if admin.
-  // Or better, let's just show all for demo purposes, or a slice.
-  const myProducts = user?.role === 'admin' 
-    ? products 
-    : products.filter(p => p.id % 2 === 0); // Fake filter just to show some products
 
-  const handleDelete = (id) => {
+  const myProducts = user
+    ? products.filter(product => user.role === 'admin' || product.sellerId === user.id)
+    : [];
+
+  const handleDelete = async (id) => {
     if (!window.confirm(language === 'TH' ? 'คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?' : 'Are you sure you want to delete this product?')) return;
-    deleteProduct(id);
+
+    try {
+      await deleteProduct(id, token);
+    } catch (error) {
+      alert(error.message || 'Delete failed');
+    }
   };
 
   return (
     <div className="container" style={{ padding: '2rem 0', minHeight: '80vh' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>{language === 'TH' ? 'สินค้าของฉัน' : 'My Products'}</h2>
-        <Link to="/product/create" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary-color)' }}>
-          <Plus size={20} /> {language === 'TH' ? 'ลงขายสินค้า' : 'Create Listing'}
-        </Link>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
+        <div>
+          <h2 style={{ margin: 0 }}>{language === 'TH' ? 'สินค้าของฉัน' : 'My Listings'}</h2>
+          {user && (
+            <div style={{ marginTop: '0.4rem', color: '#64748b', fontSize: '0.92rem' }}>
+              {user.role === 'admin' ? (language === 'TH' ? 'คุณเป็นแอดมิน จัดการสินค้าทั้งหมดได้' : 'You are admin and can manage all listings') : (language === 'TH' ? 'รายการสินค้าที่คุณลงขาย' : 'Products you have listed')}
+            </div>
+          )}
+        </div>
+        {user ? (
+          <Link to="/product/create" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary-color)' }}>
+            <Plus size={20} /> {language === 'TH' ? 'ลงขายสินค้า' : 'Create Listing'}
+          </Link>
+        ) : (
+          <Link to="/login" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary-color)' }}>
+            <Plus size={20} /> {language === 'TH' ? 'เข้าสู่ระบบก่อนลงขาย' : 'Login to list'}
+          </Link>
+        )}
       </div>
 
-      {myProducts.length === 0 ? (
+      {!user ? (
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '1.5rem', borderRadius: '16px', color: '#475569' }}>
+          <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#0f172a' }}>{language === 'TH' ? 'เข้าสู่ระบบก่อนลบ/แก้ไข' : 'Login required to edit or delete'}</strong>
+          {language === 'TH' ? 'กรุณาเข้าสู่ระบบเพื่อดูสินค้าของคุณและจัดการประกาศของคุณ' : 'Please sign in to view your listings and manage your products.'}
+        </div>
+      ) : myProducts.length === 0 ? (
         <p>{language === 'TH' ? 'คุณยังไม่มีสินค้าที่ลงขาย' : "You haven't listed any products yet."}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>

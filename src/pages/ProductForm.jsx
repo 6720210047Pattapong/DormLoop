@@ -22,6 +22,7 @@ const ProductForm = () => {
     meetingLocation: ''
   });
   const [error, setError] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
 
   useEffect(() => {
     if (isEditMode) {
@@ -36,6 +37,7 @@ const ProductForm = () => {
           image: p.image || '',
           meetingLocation: p.meetingLocation || ''
         });
+        setPreviewImage(p.image || '');
       }
     }
   }, [id, isEditMode, products]);
@@ -43,19 +45,40 @@ const ProductForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'image') {
+      setPreviewImage(value);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      setPreviewImage(result);
+      setFormData(prev => ({ ...prev, image: result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      if (!token) {
+        setError(language === 'TH' ? 'กรุณาเข้าสู่ระบบก่อนลงขายสินค้า' : 'Please log in before listing a product');
+        return;
+      }
+
       if (isEditMode) {
-        updateProduct(id, formData);
+        await updateProduct(id, formData, token);
       } else {
-        addProduct(formData);
+        await addProduct(formData, token);
       }
       navigate('/my-products');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Something went wrong');
     }
   };
 
@@ -98,7 +121,7 @@ const ProductForm = () => {
             <select name="category" value={formData.category} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }}>
               <option value="Electronics">Electronics</option>
               <option value="Furniture">Furniture</option>
-              <option value="Dorm">Dorm Essentials</option>
+              <option value="Dorm Essentials">Dorm Essentials</option>
               <option value="Books">Books</option>
               <option value="Clothes">Clothes</option>
               <option value="Others">Others</option>
@@ -129,9 +152,40 @@ const ProductForm = () => {
         
         <div>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            {language === 'TH' ? 'ลิงก์รูปภาพ' : 'Image URL'}
+            {language === 'TH' ? 'รูปภาพสินค้า' : 'Product image'}
           </label>
-          <input type="text" name="image" value={formData.image} onChange={handleChange} placeholder="https://example.com/image.jpg" style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+
+          <div style={{ border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '1rem', background: '#f8fafc' }}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: 'block', width: '100%', marginBottom: '0.75rem' }}
+            />
+
+            <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.75rem' }}>
+              {language === 'TH' ? 'หรือวางลิงก์รูปภาพด้านล่าง' : 'or paste an image URL below'}
+            </div>
+
+            <input
+              type="text"
+              name="image"
+              value={formData.image}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg"
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ccc' }}
+            />
+          </div>
+
+          {previewImage && (
+            <div style={{ marginTop: '1rem' }}>
+              <img
+                src={previewImage}
+                alt="Preview"
+                style={{ width: '100%', maxHeight: '260px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #e2e8f0' }}
+              />
+            </div>
+          )}
         </div>
         
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>

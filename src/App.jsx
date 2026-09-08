@@ -5,16 +5,15 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyProducts from './pages/MyProducts';
 import ProductForm from './pages/ProductForm';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ProductProvider } from './context/ProductContext';
+import { CartProvider } from './context/CartContext';
+import Cart from './pages/Cart';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -39,7 +38,6 @@ function App() {
                     <Route path="/shop" element={<Shop />} />
                     <Route path="/product/:id" element={<ProductDetails />} />
                     <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout" element={<Checkout />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     
@@ -49,10 +47,10 @@ function App() {
                     <Route path="/product/edit/:id" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
                   </Routes>
                 </main>
-              <Footer />
-            </div>
-          </Router>
-        </CartProvider>
+                <Footer />
+              </div>
+            </Router>
+          </CartProvider>
         </ProductProvider>
       </AuthProvider>
     </LanguageProvider>

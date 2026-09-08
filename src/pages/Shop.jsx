@@ -1,23 +1,41 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { Search } from 'lucide-react';
 import { ProductContext } from '../context/ProductContext';
 import { LanguageContext } from '../context/LanguageContext';
 
 const Shop = () => {
-  const { products } = useContext(ProductContext);
+  const { products, fetchProducts, loading } = useContext(ProductContext);
   const { language } = useContext(LanguageContext);
-  
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const categories = ['All', 'Electronics', 'Furniture', 'Dorm Essentials', 'Books', 'Clothes', 'Others'];
+
+  const initialCategory = (() => {
+    const categoryFromUrl = searchParams.get('category');
+    return categories.includes(categoryFromUrl) ? categoryFromUrl : 'All';
+  })();
+
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('All');
+  const [filter, setFilter] = useState(initialCategory);
 
-  const categories = ['All', 'Electronics', 'Furniture', 'Dorm', 'Books', 'Clothes', 'Others'];
+  useEffect(() => {
+    setFilter(initialCategory);
+  }, [initialCategory]);
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = filter === 'All' || p.category === filter;
-    return matchesSearch && matchesCategory;
-  });
+  useEffect(() => {
+    fetchProducts(search, filter);
+  }, [search, filter, fetchProducts]);
+
+  const handleFilterChange = (nextFilter) => {
+    setFilter(nextFilter);
+    if (nextFilter === 'All') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: nextFilter });
+    }
+  };
 
   return (
     <div className="animate-fade-in section">
@@ -25,12 +43,11 @@ const Shop = () => {
         <h1 style={{ marginBottom: '2rem' }}>
           {language === 'TH' ? 'สินค้าทั้งหมด' : 'Shop Collection'}
         </h1>
-        
-        {/* Search */}
+
         <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', background: 'white', borderRadius: '4px', border: '1px solid #ccc', maxWidth: '400px', padding: '0 0.5rem' }}>
           <Search size={20} color="#666" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder={language === 'TH' ? 'ค้นหาสินค้า...' : 'Search products...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -38,25 +55,25 @@ const Shop = () => {
           />
         </div>
 
-        {/* Filters */}
         <div className="flex gap-4" style={{ marginBottom: '3rem', overflowX: 'auto', paddingBottom: '1rem' }}>
           {categories.map(category => (
-            <button 
+            <button
               key={category}
               className={`btn ${filter === category ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setFilter(category)}
+              onClick={() => handleFilterChange(category)}
             >
               {category}
             </button>
           ))}
         </div>
 
-        {/* Product Grid */}
-        {filteredProducts.length === 0 ? (
+        {loading ? (
+          <p>{language === 'TH' ? 'กำลังโหลดสินค้า...' : 'Loading products...'}</p>
+        ) : products.length === 0 ? (
           <p>{language === 'TH' ? 'ไม่พบสินค้า' : 'No products found.'}</p>
         ) : (
           <div className="grid grid-cols-4 gap-6">
-            {filteredProducts.map(product => (
+            {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

@@ -1,15 +1,14 @@
 import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, User, LogOut, Search, Heart, MessageCircle } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { Link } from 'react-router-dom';
+import { User, LogOut, Search, Heart, MessageCircle, ShoppingCart } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../context/LanguageContext';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
-  const { cartCount } = useCart();
   const { user, logout } = useContext(AuthContext);
   const { language, setLanguage } = useContext(LanguageContext);
-  const navigate = useNavigate();
+  const { cartCount } = useCart();
 
   return (
     <>
@@ -55,6 +54,14 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             <button className="btn-icon" style={{ background: 'none' }}><Heart size={22} color="#666" /></button>
             <button className="btn-icon" style={{ background: 'none' }}><MessageCircle size={22} color="#666" /></button>
+            <Link to="/cart" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem' }}>
+              <ShoppingCart size={22} color="#666" />
+              {cartCount > 0 && (
+                <span style={{ position: 'absolute', top: '-4px', right: '-2px', background: '#2563eb', color: 'white', borderRadius: '999px', minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
+                  {cartCount}
+                </span>
+              )}
+            </Link>
             
             {!user ? (
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -63,7 +70,7 @@ const Navbar = () => {
             ) : (
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <Link to="/my-products" style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <User size={18}/> {user.name}
+                  <User size={18}/> {language === 'TH' ? 'สินค้าของฉัน' : 'My Listings'}
                 </Link>
                 <button onClick={logout} className="btn-icon" title="Logout" style={{ color: 'red', background: 'none' }}>
                   <LogOut size={20} />
